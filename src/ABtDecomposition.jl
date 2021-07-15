@@ -35,8 +35,8 @@ Base.size(ABt::ABtDecomposition,i) = begin
     end
 end
 
-Base.:*(A::ABtDecomposition,B::AbstractArray) = A.A*(A.Bt*B)
-Base.:*(A::AbstractArray,B::ABtDecomposition) = (A*B.A)*B.Bt
+Base.:*(A::ABtDecomposition{T},B::Array{S}) where {T,S} = A.A*(A.Bt*B)
+Base.:*(A::Array{T},B::ABtDecomposition{S}) where {T,S} = (A*B.A)*B.Bt
 Base.:*(A::ABtDecomposition,B::ABtDecomposition) = ABtDecomposition(A.A,(A.Bt*B.A)*B.Bt)
 
 Base.getindex(A::ABtDecomposition,i::Int) = sum(
@@ -44,3 +44,75 @@ Base.getindex(A::ABtDecomposition,i::Int) = sum(
     A.Bt[:,toCartesian(i,size(A.Bt,1),size(A.Bt,2))[2]]
 )
 Base.getindex(A::ABtDecomposition,i::Int,j::Int) = sum(A.A[i,:] .* A.Bt[:,j])
+
+function ACA(I, J, fct::Function, tol::T) where {T<:Real}
+    #= Adaptive Cross Approximation algorithm for the
+        low-rank approximation of full matrices. =#
+    # functions returning the rows or the columns of the matrix
+    row(i) = fct(I[i],J)
+    col(j) = fct(I,J[j])
+
+    Nr = length(I)
+    Nc = length(J)
+    # pivot lists
+    Ir = collect(1:Nr)
+    Ic = collect(1:Nc)
+
+    # first row
+    k  = 1
+    Bt = reshape(row(Ir[k]),(1,Nc))
+    deleteat!(Ir,k)
+
+    k = argmax(abs.(Bt[Ic]))
+    c = Ic[k]
+    β = Bt[c]
+    deleteat!(Ic,k)
+
+    A = col(c)/β
+    A = reshape(A,(Nr,1))
+
+    aa = real(dot(A,A)); bb = real(dot(Bt,Bt)); res = aa*bb
+    ε = sqrt(aa)*sqrt(bb)/sqrt(res)
+
+    anp1 = A[:,1:1]
+
+    flag = true
+    n    = 1
+    while ε > tol
+        if n*(Nr+Nc) > Nr*Nc
+            flag = false
+            break
+        end
+
+        k = argmax(abs.(anp1[Ir]))
+        r = Ir[k]
+        deleteat!(Ir,k)
+
+        bnp1 = reshape(row(r),(1,Nc))
+        u    = A[r:r,:]
+        bnp1 .-= u*Bt
+
+        k = argmax(abs.(bnp1[Ic]))
+        c = Ic[k]
+        β = bnp1[c]
+        deleteat!(Ic,k)
+
+        anp1 = reshape(col(c),(Nr,1))
+        v    = Bt[:,c:c]
+        anp1 .= (anp1-A*v)/β
+        
+        aa = real(dot(anp1,anp1)); bb = real(dot(bnp1,bnp1))
+        u = A'*anp1
+        v = Bt*bnp1'
+        ab = real(dot(u,v))
+
+        res += 2*ab+aa*bb
+        ε = sqrt(aa)*sqrt(bb)/sqrt(res)
+
+        A  = hcat(A, anp1)
+        Bt = vcat(Bt,bnp1)
+
+        n += 1
+    end
+    return ABtDecomposition(A, Bt), flag
+end
