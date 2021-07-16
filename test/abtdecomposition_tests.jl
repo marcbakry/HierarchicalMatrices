@@ -1,7 +1,3 @@
-using Test, LinearAlgebra
-
-include("../src/ABtDecomposition.jl")
-
 @testset "Testing the A-Bt decomposition" begin
     M = 4
     K = 2
@@ -25,7 +21,7 @@ include("../src/ABtDecomposition.jl")
     @test_throws DomainError ABtDecomposition(A,rand(K+1,N))
 
     # ACA compression
-    N = 500; M = 1000
+    N = 100; M = 200
     C = zeros(ComplexF64,M,N)
     X = rand(M,3); Y = rand(N,3) .+ 1.0; V = rand(N) + 1im*rand(N)
     for j=1:N

@@ -1,6 +1,6 @@
 using LinearAlgebra
 
-include("BBox.jl")
+export BinTree, isleaf, box, crd, ind, sub, leaf, maxdepth
 
 struct BinTree{T<:Real}
     m_isleaf::Bool

@@ -1,7 +1,3 @@
-using Test
-
-include("../src/BBox.jl")
-
 @testset "Testing the BBox structure" begin
     X = [ 
         0.512363  0.523803  0.610511;

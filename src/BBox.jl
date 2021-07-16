@@ -1,5 +1,6 @@
 using StaticArrays, LinearAlgebra
-import Base
+
+export BBox, get_min, get_max, get_edg, get_ctr, show, isfar
 
 struct BBox{T<:Real}
     m_ctr::SVector{3,T}
@@ -14,9 +15,8 @@ function BBox(X::Array{T,2})  where {T<:Real}
     end
     m_min = SVector{3}(minimum(X,dims=1))
     m_max = SVector{3}(maximum(X,dims=1))
-    m_ctr = (m_min+m_max)/2
     m_edg = m_max - m_min
-    return BBox(m_ctr,m_edg,m_max,m_min)
+    return BBox((m_min+m_max)/2,m_edg,m_max,m_min)
 end
 
 # accessors

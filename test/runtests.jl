@@ -1,6 +1,4 @@
-using StaticArrays: reshape
-using Base: UInt32
-using Test
+using Test, LinearAlgebra, HierarchicalMatrices
 
 # testing BBox
 include("bbox_tests.jl")
@@ -10,3 +8,6 @@ include("bintree_tests.jl")
 
 # A-Bt decomposition
 include("abtdecomposition_tests.jl")
+
+# Hierarchical Matrices
+include("hmatrix_tests.jl")

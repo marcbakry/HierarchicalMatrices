@@ -1,5 +1,7 @@
 using LinearAlgebra
 
+export  ABtDecomposition, toCartesian, rank, size, *, getindex, ACA
+
 struct ABtDecomposition{T} <: AbstractArray{T,2}
     A::Array{T,2}
     Bt::Array{T,2}
